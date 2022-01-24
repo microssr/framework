@@ -1,0 +1,38 @@
+---
+name: release
+
+on: [push]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout@scm
+        uses: actions/checkout@main
+
+      - name: setup@node
+        uses: actions/setup-node@main
+        with:
+          node-version: '16.x'
+          always-auth: true
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@microssr'
+
+      - name: setup@yarn
+        run: npm install -g yarn
+
+      - name: deps@yarn
+        run: yarn install
+
+      - name: lint@yarn
+        run: yarn run lint
+
+      - name: build@yarn
+        run: yarn run build
+
+      - name: publish@yarn
+        if: github.ref == 'refs/heads/main'
+        run: /bin/sh .github/scripts/maybe-publish.sh
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
